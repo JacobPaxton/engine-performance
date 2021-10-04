@@ -16,11 +16,12 @@ Collect engine performance data from disparate sources. Create features based on
 2. Chose 2013 Subaru Impreza WRX STI for initial analysis
     * It had a lot of different owners and dyno runs
 3. Installed tabula-py through pip to read the Cobb tuning PDFs
+4. Chose to convert PDFs programatically
+5. Stored programatic conversion functions to prepare.py
 
 # Work to do soon
 ## Data Acquisition and Preparation
-- Need to create function to automate import and conversion of tuning PDFs
-    * Will need to handle/add other data portions (car specs/modifications) that are outside tabula.read_pdf purview
+- Need to handle/add other data portions (car specs/modifications) that are outside tabula.read_pdf purview
 - Need to download all PDFs for the 2013 Subaru model I chose
 - Need to import all PDFs
 - Need to concat everything together somehow (logic not yet determined)
