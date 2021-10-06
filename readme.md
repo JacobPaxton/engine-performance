@@ -19,11 +19,11 @@ Collect engine performance data from disparate sources. Create features based on
 4. Chose to convert PDFs programatically
 5. Stored programatic conversion functions to prepare.py
 6. Downloaded all 2013 Subaru Impreza WRX STI dyno runs to directory
+7. Converted PDFs to CSVs
+8. Added specified drivetrain characteristics to analysis.ipynb
 
 # Work to do soon
 ## Data Acquisition and Preparation
-- Need to handle/add other data portions (car specs/modifications) that are outside tabula.read_pdf purview
-- Need to import all PDFs
 - Need to concat everything together somehow (logic not yet determined)
 - Need to output data to a CSV
 - Need to upload data to Kaggle and Google Docs
