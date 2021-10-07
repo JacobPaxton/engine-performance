@@ -21,9 +21,13 @@ Collect engine performance data from disparate sources. Create features based on
 6. Downloaded all 2013 Subaru Impreza WRX STI dyno runs to directory
 7. Converted PDFs to CSVs
 8. Added specified drivetrain characteristics to analysis.ipynb
+9. Chose to focus on max horsepower
 
 # Work to do soon
 ## Data Acquisition and Preparation
-- Need to concat everything together somehow (logic not yet determined)
-- Need to output data to a CSV
-- Need to upload data to Kaggle and Google Docs
+- Create run_id column and car_id column, concat all rows into one dataframe
+- Output all rows to new CSV
+- Create new dataframe of each run_id's max horsepower row
+- Add columns for parts, fuel, PSI, and more features
+- Push final version of initial data to CSV
+- Upload CSV to Google Docs and Kaggle
