@@ -22,11 +22,11 @@ Collect engine performance data from disparate sources. Create features based on
 7. Converted PDFs to CSVs
 8. Added specified drivetrain characteristics to analysis.ipynb
 9. Chose to focus on max horsepower
+10. Revisited programmatic web scraping, found solution
+11. Uploaded *all* dyno runs to Kaggle
 
 # Work to do soon
 ## Data Acquisition and Preparation
-- Create run_id column and car_id column, concat all rows into one dataframe
-- Output all rows to new CSV
 - Create new dataframe of each run_id's max horsepower row
 - Add columns for parts, fuel, PSI, and more features
 - Push final version of initial data to CSV
