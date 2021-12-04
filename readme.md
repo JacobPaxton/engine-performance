@@ -3,6 +3,9 @@
 # Overview
 Collect engine performance data from disparate sources. Create features based on displacement and parts. Predict horsepower using regression. 
 
+# Kaggle Upload Link
+https://www.kaggle.com/paxtonjacob/cobb-tuning-dyno-data
+
 # Potential Leads
 0. OEM data, specifically camshaft tests and otherwise for engines
 1. https://apidocs.marketcheck.com - Excellent resource for OEM car data including engines, requires an account and API key, 20k requests and 30 days free accessx
@@ -27,7 +30,4 @@ Collect engine performance data from disparate sources. Create features based on
 
 # Work to do soon
 ## Data Acquisition and Preparation
-- Create new dataframe of each run_id's max horsepower row
-- Add columns for parts, fuel, PSI, and more features
-- Push final version of initial data to CSV
-- Upload CSV to Google Docs and Kaggle
+- Project on hold for the meantime; data uploaded to Kaggle, next steps are to analyze the data
