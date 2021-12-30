@@ -42,14 +42,12 @@ def prep_car_info():
     info = info[~info.Run.isin(drop_list)].reset_index(drop=True)
     # drop Date column
     info = info.drop(columns='Date')
-    # using first-4 characters as year
-    info['car_year'] = info.Car.str[:4]
     # splitting the rest of the string into make and model
-    make_model = info.Car.str.extract(r'\W(.*?)\W(.*?)$')
+    year_make_model = info.Car.str.extract(r'^(.*?)\W(.*?)\W(.*?)$')
     # using the second word as the make
-    info['car_make'] = make_model[0]
+    info['car_make'] = year_make_model[1]
     # using the last portion as the model
-    info['car_model'] = make_model[1]
+    info['car_model'] = year_make_model[0] + ' ' + year_make_model[2]
     # drop redundant Car column
     info = info.drop(columns='Car')
     # convert remaining columns to lowercase
@@ -73,6 +71,8 @@ def prep_dyno_runs():
     runs = runs.drop(columns='AFR')
     # drop remaining rows having nulls in RPM and Boost columns
     runs = runs.dropna().reset_index(drop=True)
+    # drop a few runs that had data but incorrect information
+    runs = runs[~runs.Run.isin([91, 92, 93, 2491, 2492])]
     # convert column names to lowercase
     runs = runs.rename(columns={'Run':'run', 
                                 'RPM':'rpm', 
@@ -110,7 +110,8 @@ def runs_to_drop():
         Return a list of runs dropped when cleaning dyno_runs.csv.
         This list is needed for when we clean car_info.csv.
     """
-    run_list = [94, 101, 209, 210, 211, 266, 267, 268, 270, 271, 272, 273, 274, 275, 276, 278, 
+    run_list = [91, 92, 93, 2491, 2492,
+                94, 101, 209, 210, 211, 266, 267, 268, 270, 271, 272, 273, 274, 275, 276, 278, 
                 279, 280, 354, 357, 425, 490, 546, 585, 607, 634, 635, 696, 727, 728, 916, 917, 
                 980, 1044, 1186, 1236, 1237, 1238, 1239, 1240, 1241, 1242, 1243, 1244, 1245, 1246, 
                 1278, 1279, 1280, 1375, 1376, 1405, 1417, 1418, 1419, 1420, 1421, 1422, 1423, 1427, 
@@ -145,3 +146,85 @@ def runs_to_drop():
                 5910, 5911, 5920, 5921, 5922, 5923, 5924, 5926, 5933]
 
     return run_list
+
+def horsepower_dict():
+    """ Return the results of manually checking car year+make max horsepower """
+
+    hp_dict = {
+    # subaru impreza WRX STI
+    '2004 Impreza WRX STI':300, '2005 Impreza WRX STI':300, '2005 Impreza WRX STI Sedan':300, 
+    '2006 Impreza WRX STI':300, '2007 Impreza WRX STI':300, '2008 Impreza WRX STI':305, 
+    '2008 Impreza WRX STI Hatch':305, '2009 Impreza WRX STI':305, '2010 Impreza WRX STI':305, 
+    '2011 Impreza WRX STI':305, '2011 Impreza WRX STI Hatch':305, '2011 Impreza WRX STI Sedan':305, 
+    '2012 Impreza WRX STI':305, '2012 Impreza WRX STI Hatch':305, '2012 Impreza WRX STI Sedan':305, 
+    '2013 Impreza WRX STI':305, '2013 Impreza WRX STI Hatch':305, '2013 Impreza WRX STI Sedan':305, 
+    '2014 Impreza WRX STI':305, '2014 Impreza WRX STI Hatch':305, '2014 Impreza WRX STI Sedan':305, 
+    '2015 Impreza WRX STI':305, '2015 WRX STI':305, '2016 WRX STI':305,
+    # subaru impreza WRX
+    '2002 Impreza WRX':227, '2003 Impreza WRX':227, '2004 Impreza WRX':227, '2005 Impreza WRX':300,
+    '2006 Impreza WRX':230, '2007 Impreza WRX':300, '2008 Impreza WRX':305, '2009 Impreza WRX':265,
+    '2010 Impreza WRX':265, '2011 Impreza WRX':305, '2012 Impreza WRX':265, '2013 Impreza WRX':265,
+    '2014 Impreza WRX':265, '2015 WRX':268, '2015 Impreza WRX':268, '2016 WRX':268,
+    # subaru impreza RS
+    '1993 Impreza RS':110, '1994 Impreza RS':110, '1995 Impreza RS':135, '1997 Impreza RS':137,
+    '1998 Impreza RS':165, '1999 Impreza RS':165, '2000 Impreza RS':165, '2001 Impreza RS':165,
+    '2002 Impreza RS':165, '2006 Impreza 2.5i':173,
+    # subaru legacy 2.5GT
+    '2005 Legacy 2.5GT':250, '2006 Legacy 2.5GT':250, '2007 Legacy 2.5GT':245,
+    '2007 Legacy 2.5 spec.B':243, '2008 Legacy 2.5GT':243, '2008 Legacy 2.5 spec.B':243,
+    '2009 Legacy 2.5GT':245, '2009 Legacy 2.5 spec.B':243, '2010 Legacy 2.5GT':265, '2012 Legacy 2.5GT':265,
+    # subaru legacy
+    '1996 Legacy':137, '1998 Legacy':137,
+    # subaru forester XT
+    '2015 Forester XT':250, '2007 Forester XT':224, '2005 Forester XT':210, '2004 Forester XT':210,
+    '2014 Forester XT':250,
+    # subaru forester
+    '2004 Forester':165, '2005 Forester':165, '2006 Forester':173, '2007 Forester':173, '2008 Forester':173, 
+    '2009 Forester':170, '2010 Forester':170, '2012 Forester':170, '2013 Forester':170,
+    # subaru outback
+    '2002 Outback Sport':165, '2005 Outback XT':250, '2007 Outback XT':243,
+    '2008 Outback XT':243, '2009 Outback XT':243,
+    # mitsubishi EVO
+    '2003 EVO VIII':271, '2006 EVO VIII':405, '2005 EVO IX':276, '2006 EVO IX':286, '2008 EVO X':291,
+    '2008 EVO X MR':291, '2008 EVO X GSR':291, '2009 EVO IX':291, '2010 EVO X':291, '2010 EVO X SE':291,
+    '2010 EVO X MR':291, '2010 EVO X GSR':291, '2011 EVO X':291, '2011 EVO X MR':291, '2011 EVO X GSR':291,
+    '2012 EVO X':291, '2012 EVO X MR':291, '2012 EVO X GSR':291, '2013 EVO X':291, '2013 EVO X MR':291,
+    '2013 EVO X GSR':291, '2014 EVO X MR':291, '2014 EVO X GSR':291, '2015 EVO X GSR':291,
+    # mitsubishi lancer ralliart
+    '2009 Lancer Ralliart':237, '2010 Lancer Ralliart':237, '2011 Lancer Ralliart':237,
+    '2013 Lancer Ralliart':237, '2014 Lancer Ralliart':237,
+    # mitsubishi eclipse
+    '1995 Eclipse GSX':210, '1997 Eclipse GSX':210,
+    # nissan GT-R
+    '1995 Skyline GTS-T':247, '1995 Skyline R33':280, '2009 GT-R':480, '2010 GT-R':485, '2011 GT-R':485,
+    '2012 GT-R':530, '2012 R35':530, '2013 GT-R':545, '2014 GT-R':545, '2015 GT-R':545,
+    # nissan Z-variants
+    '1976 280Z':171, '1990 300ZX':222, '1991 240SX':155, '1993 300ZX':300, '2006 350Z':287,
+    # mazda speed variants
+    '2006 Mazdaspeed6':274, '2007 Mazdaspeed3':263, '2007 Mazdaspeed6':215, '2008 Mazdaspeed3':263,
+    '2009 Mazdaspeed3':263, '2010 Mazdaspeed3':263, '2011 Mazdaspeed3':263, '2012 Mazdaspeed3':263,
+    '2013 Mazdaspeed3':263,
+    # mazda miata
+    '1991 MX-5/Miata':116, '2005 MX-5/Miata':142,
+    # porsche
+    '2010 997.2':345, '2010 997.2TT':500, '2011 997.2':500, '2014 991 Turbo S':560, '2015 991 Turbo S':560,
+    # bmw 1m
+    '2011 1M':335, '2012 1M':335,
+    # bmw i-variants
+    '2007 335i':300, '2008 335i':300, '2008 335xi':300, '2008 535Xi':300, '2008 135i':300,
+    '2009 335i':300, '2010 335i':300, '2011 335i':300, '2015 335i':300,
+    # volkswagon
+    '1997 Golf':117, '2016 Golf R':292, '2012 GTI':200, '2016 GTI':210,
+    # infiniti
+    '2003 G35':260, '2008 G37':330,
+    # ford focus st
+    '2013 Focus ST':252, '2014 Focus ST':252,
+    # other
+    '1997 Supra':320, # toyota
+    '2015 Mustang Ecoboost':310, # ford
+    '1986 C10 Pickup':165, # chevy
+    '2003 SMART':65, # smart
+    '1974 914':85, # porsche
+    '2005 9-2x':165, # saab
+    '2009 Civic Si':197, # honda
+    }
