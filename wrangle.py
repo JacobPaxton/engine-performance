@@ -17,6 +17,10 @@ def prep_explore():
     # dyno_runs.csv
     runs = prep_dyno_runs()
 
+    # feature engineering
+    info['has_keyword'] = False
+    info = keyword_features(info)
+
     # split car_info.csv into train (50%), validate (30%), and test (20%)
     info_train, runs_train, _, _, _, _ = split_runs_and_info(info, runs)
 
@@ -104,6 +108,58 @@ def split_runs_and_info(info, runs):
 
     # return only the train split for exploration
     return info_train, runs_train, info_validate, runs_validate, info_test, runs_test
+
+# --------------------- Feature Engineering --------------------- #
+
+def keyword_features(info):
+    """ Create several features for keywords in the 'specs' column, return dataframe """
+    # psi
+    info = psi(info)
+    # octane
+    info = octane(info)
+
+    return info
+
+def psi(info):
+    """ Add new column for specs including the boost PSI """
+    # psi
+    info['psi'] = info.specs.str.extract(r'^.*\b(\d+\.*\d*)\s?psi.*$')
+    # programmatic fix for '17.5 Peak PSI' issue
+    newthing = info.specs.str.extract(r'^.*\b(\d\d\.\d) Peak PSI.*$')
+    indices = newthing[newthing[0].notna()].index
+    for ind in indices:
+        info.loc[ind, 'psi'] = newthing[0][ind]
+
+    return info
+
+def octane(info):
+    """ Add new column for specs including the fuel octane """
+    # octane overall capture
+    info['octane'] = info.specs.str.extract(r'^.*\b(\d+)[,\s]?\s?[Oo][Cc][Tt].*$')
+    # 93 octane fuel
+    octane_93_indices = info[info.specs.str.contains(' 93 ')].index
+    for ind in octane_93_indices:
+        info.loc[ind, 'octane'] = 93
+    # 91 octane fuel
+    octane_91_indices = info[info.specs.str.contains('ACN91|ANC91|91 CA| 91 ')].index
+    for ind in octane_91_indices:
+        info.loc[ind, 'octane'] = 91
+    # 104 octane fuel
+    octane_104_indices = info[info.specs.str.contains('104')].index
+    for ind in octane_104_indices:
+        info.loc[ind, 'octane'] = 104
+    # e85 fuel
+    e85_indices = info[info.specs.str.contains('E85|E-85')].index
+    for ind in e85_indices:
+        info.loc[ind, 'octane'] = 105
+    # MS109 fuel
+    ms109_indices = info[info.specs.str.contains('MS109')].index
+    for ind in ms109_indices:
+        info.loc[ind, 'octane'] = 109
+
+    return info
+
+# --------------------- Data-On-Demand Functions --------------------- #
 
 def runs_to_drop():
     """ 
@@ -208,6 +264,7 @@ def horsepower_dict():
     '1991 MX-5/Miata':116, '2005 MX-5/Miata':142,
     # porsche
     '2010 997.2':345, '2010 997.2TT':500, '2011 997.2':500, '2014 991 Turbo S':560, '2015 991 Turbo S':560,
+    'Macan 2.0L':261,
     # bmw 1m
     '2011 1M':335, '2012 1M':335,
     # bmw i-variants
