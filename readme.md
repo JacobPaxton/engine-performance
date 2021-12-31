@@ -26,6 +26,7 @@ To determine which parts packages and setups increase horsepower overall, we nee
 2. Create new version of car_info df for single make+model+horsepower combination
 3. Get the stock performance of the single combination
 4. Create features for parts, fuel, and more based on 'specs' values
+    * Minimum Viable Product: 'psi', 'octane' features
     * Simplify dyno run data to max horsepower, max torque, and max boost
     * Append run's max horsepower, torque, and boost to car_info dataframe
     * Append stock max horsepower, torque, and boost to car_info dataframe
@@ -50,4 +51,6 @@ Once we've identified features that drive horsepower, we will build regression m
 - Cleaned the data while preserving shared key between the two files
 - Split the data while preserving shared key
 - Moved acquisition and cleaning work to wrangle.py
+- Engineered features for boost PSI and for fuel octane
+- Moved 'psi' and 'octane' feature builders to wrangle.py
 - Choose Subaru Impreza WRX STI as our single engineering baseline
