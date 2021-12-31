@@ -54,3 +54,11 @@ Once we've identified features that drive horsepower, we will build regression m
 - Engineered features for boost PSI and for fuel octane
 - Moved 'psi' and 'octane' feature builders to wrangle.py
 - Choose Subaru Impreza WRX STI as our single engineering baseline
+- Built data split function and scaler function
+- **MVP Complete**
+    * Used boost PSI and fuel octane with target as max horsepower
+    * Built, fit OLS algorithm on scaled 'psi' and 'octane'
+    * *Residuals plot indicates not all dependencies accounted for*
+    * OLS RMSE: 81 horsepower (mean baseline RMSE: 90 horsepower)
+    * OLS R^2 Explained Variance: 16% (mean baseline R^2: 1%)
+    * **MVP model outperformed baseline**
