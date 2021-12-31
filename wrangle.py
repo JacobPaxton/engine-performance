@@ -1,6 +1,8 @@
 import pandas as pd
 import re
+
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 # --------------------- Main Functions --------------------- #
 
@@ -8,6 +10,7 @@ def prep_explore():
     """ 
         Ingest car_info.csv and dyno_runs.csv,
         Clean both files while preserving shared key 'Run',
+        Engineer the 'psi' and 'octane' features,
         Split files into train (50%), validate (30%), and test (20%) splits,
         Return train split of both files.
     """
@@ -26,6 +29,35 @@ def prep_explore():
 
     # return only the train split for exploration
     return info_train, runs_train
+
+def prep_model_MVP():
+    """
+        Ingest car_info.csv and dyno_runs.csv,
+        Clean both files while preserving shared key 'Run',
+        Engineer the 'psi' and 'octane' features,
+        Calculate max horsepower for each run and append to car_info,
+        Limit car_info to 'hp', 'psi', and 'octane' for MVP,
+        Split car_info into train (50%), validate (30%), and test (20%) splits,
+        Isolate target from splits,
+        Return all data.
+    """
+    # car_info.csv
+    info = prep_car_info()
+    # dyno_runs.csv
+    runs = prep_dyno_runs()
+    # psi and octane features
+    info = keyword_features_MVP(info)
+    # append max horsepower to info
+    max_hp_groupby = pd.DataFrame(runs.groupby('run').hp.max())
+    info = pd.merge(left=info, right=max_hp_groupby, left_on='run', right_on='run')
+    # shorten the dataframe to our MVP features, drop nulls (we may impute later)
+    info = info[['hp','psi','octane']].dropna().astype('float')
+    # split car_info.csv into train (50%), validate (30%), and test (20%)
+    X_train, y_train, X_validate, y_validate, X_test, y_test = split_isolate_info(info)
+    # scale splits
+    X_train, X_validate, X_test = scaler(X_train, X_validate, X_test)
+
+    return X_train, y_train, X_validate, y_validate, X_test, y_test
 
 # --------------------- Assist Functions --------------------- #
 
@@ -109,6 +141,33 @@ def split_runs_and_info(info, runs):
     # return only the train split for exploration
     return info_train, runs_train, info_validate, runs_validate, info_test, runs_test
 
+def split_isolate_info(info):
+    """ 
+        Split car_info.csv into train (50%), validate (30%), and test (20%),
+        Isolate target from each split,
+        Return all data.
+    """
+    # split car_info.csv into train (50%), validate (30%), and test (20%)
+    train_validate, test = train_test_split(info, test_size=.2, random_state=1)
+    train, validate = train_test_split(train_validate, test_size=.375, random_state=1)
+    # isolate target from each split
+    X_train, y_train = train.drop(columns='hp'), train.hp
+    X_validate, y_validate = validate.drop(columns='hp'), validate.hp
+    X_test, y_test = test.drop(columns='hp'), test.hp
+
+    return X_train, y_train, X_validate, y_validate, X_test, y_test
+
+def scaler(X_train, X_validate, X_test):
+    """ Use MinMaxScaler to scale the data splits """
+    # build scaler
+    scaler = MinMaxScaler()
+    # fit, transform data
+    X_train = scaler.fit_transform(X_train)
+    X_validate = scaler.transform(X_validate)
+    X_test = scaler.transform(X_test)
+
+    return X_train, X_validate, X_test
+
 # --------------------- Feature Engineering --------------------- #
 
 def keyword_features(info):
@@ -156,6 +215,18 @@ def octane(info):
     ms109_indices = info[info.specs.str.contains('MS109')].index
     for ind in ms109_indices:
         info.loc[ind, 'octane'] = 109
+
+    return info
+
+def keyword_features_MVP(info):
+    """ 
+        Create psi and octane features for keywords in the 'specs' column,
+        Return dataframe.
+    """
+    # psi
+    info = psi(info)
+    # octane
+    info = octane(info)
 
     return info
 
