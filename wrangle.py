@@ -123,7 +123,7 @@ def keyword_features(info):
 def psi(info):
     """ Add new column for specs including the boost PSI """
     # psi
-    info['psi'] = info.specs.str.extract(r'^.*\b(\d+\.*\d*)\s?psi.*$')
+    info['psi'] = info.specs.str.extract(r'^.*\s(\d+\.*\d*)\s?[Pp][Ss][Ii].*$')
     # programmatic fix for '17.5 Peak PSI' issue
     newthing = info.specs.str.extract(r'^.*\b(\d\d\.\d) Peak PSI.*$')
     indices = newthing[newthing[0].notna()].index
