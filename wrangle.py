@@ -1,5 +1,5 @@
+import numpy as np
 import pandas as pd
-import re
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
@@ -7,6 +7,75 @@ from sklearn.preprocessing import MinMaxScaler
 # --------------------- Main Functions --------------------- #
 
 def prep_explore():
+    """ 
+        Ingest car_info.csv and dyno_runs.csv,
+        Clean both files while preserving shared key 'Run',
+        Engineer the 'psi', 'octane', and 'tuned_cpu' features,
+        Add stock horsepower and dyno_runs max horsepower columns,
+        Fill nulls in 'psi' and 'octane' using dyno_runs and most common value,
+        Split files into train (50%), validate (30%), and test (20%) splits,
+        Return train split of both files.
+    """
+    # car_info.csv
+    info = prep_car_info()
+    # dyno_runs.csv
+    runs = prep_dyno_runs()
+    # psi, octane, and stock_hp features
+    info = keyword_features(info)
+    # fill nulls in psi
+    max_boost_df = pd.DataFrame(runs.groupby('run').boost.max()).reset_index() # group runs on max boost
+    info = pd.merge(left=info, right=max_boost_df, on='run') # merge dataframes
+    info['psi'] = info['psi'].fillna((info.boost * 2).astype('int') / 2).astype('float') # keep .5 precision
+    info['psi'] = info.psi / np.where(info.psi > 100, 10, 1) # fix a few typo numbers
+    info = info.drop(columns='boost') # drop redundant boost column
+    # fill octane nulls with most common octane value (92)
+    info['octane'] = info['octane'].fillna(92).astype('int')
+    # append max horsepower to info
+    max_hp_groupby = pd.DataFrame(runs.groupby('run').hp.max())
+    info = pd.merge(left=info, right=max_hp_groupby, left_on='run', right_on='run')
+    # split car_info.csv into train (50%), validate (30%), and test (20%)
+    info_train, runs_train, _, _, _, _ = split_runs_and_info(info, runs)
+    # return only the train split for exploration
+    return info_train, runs_train
+
+def prep_model():
+    """
+        Ingest car_info.csv and dyno_runs.csv,
+        Clean both files while preserving shared key 'Run',
+        Engineer the 'psi', 'octane', and 'tuned_cpu' features,
+        Add stock horsepower and dyno_runs max horsepower columns,
+        Fill nulls in 'psi' and 'octane' using dyno_runs and most common value,
+        Limit car_info to 'hp', 'psi', 'octane', 'stock_hp', and 'tuned_cpu',
+        Split car_info into train (50%), validate (30%), and test (20%) splits,
+        Isolate target from splits,
+        Return all data.
+    """
+    # car_info.csv
+    info = prep_car_info()
+    # dyno_runs.csv
+    runs = prep_dyno_runs()
+    # psi, octane, and stock_hp features
+    info = keyword_features(info)
+    # fill nulls in psi
+    max_boost_df = pd.DataFrame(runs.groupby('run').boost.max()).reset_index() # group runs on max boost
+    info = pd.merge(left=info, right=max_boost_df, on='run') # merge dataframes
+    info['psi'] = info['psi'].fillna((info.boost * 2).astype('int') / 2) # keep .5 precision
+    info = info.drop(columns='boost') # drop redundant boost column
+    # fill octane nulls with most common octane value (92)
+    info['octane'] = info['octane'].fillna(92).astype('int')
+    # append max horsepower to info
+    max_hp_groupby = pd.DataFrame(runs.groupby('run').hp.max())
+    info = pd.merge(left=info, right=max_hp_groupby, left_on='run', right_on='run')
+    # shorten the dataframe to our MVP features, drop nulls (we may impute later)
+    info = info[['hp','stock_hp','psi','octane']] # dropping tuned_cpu based on exploration
+    # split car_info.csv into train (50%), validate (30%), and test (20%)
+    X_train, y_train, X_validate, y_validate, X_test, y_test = split_isolate_info(info)
+    # scale splits
+    X_train, X_validate, X_test = scaler(X_train, X_validate, X_test)
+
+    return X_train, y_train, X_validate, y_validate, X_test, y_test
+
+def prep_explore_MVP():
     """ 
         Ingest car_info.csv and dyno_runs.csv,
         Clean both files while preserving shared key 'Run',
@@ -172,10 +241,16 @@ def scaler(X_train, X_validate, X_test):
 
 def keyword_features(info):
     """ Create several features for keywords in the 'specs' column, return dataframe """
+    # stock horsepower
+    info = stock_hp(info)
     # psi
     info = psi(info)
     # octane
     info = octane(info)
+    # tuned_cpu
+    tuned_cpu_keywords = ['Access','OTS','Stage','stage','Map','map','ProTune','Protune', 
+                      'Pro-tune', 'ProTUNE', 'COBB AP', 'Cobb AP']
+    info['tuned_cpu'] = info.specs.str.contains('|'.join(tuned_cpu_keywords))
 
     return info
 
@@ -215,6 +290,18 @@ def octane(info):
     ms109_indices = info[info.specs.str.contains('MS109')].index
     for ind in ms109_indices:
         info.loc[ind, 'octane'] = 109
+
+    return info
+
+def stock_hp(info):
+    """ Add a stock horsepower column joined on car_model """
+    # acquire stock horsepower dictionary
+    hp_dict = horsepower_dict()
+    # prep horsepower dictionary for merge
+    stock_hp_df = pd.DataFrame(hp_dict, index=['stock_hp']).T\
+        .reset_index().rename(columns={'index':'car_model'}) 
+    # merge info and prepped hp_dict
+    info = pd.merge(left=info, right=stock_hp_df, on='car_model')
 
     return info
 
@@ -356,3 +443,5 @@ def horsepower_dict():
     '2005 9-2x':165, # saab
     '2009 Civic Si':197, # honda
     }
+
+    return hp_dict
