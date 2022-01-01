@@ -6,6 +6,8 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.linear_model import LinearRegression, LassoLars, TweedieRegressor
 from sklearn.preprocessing import PolynomialFeatures
 
+# --------------------- Model Evaluation Results --------------------- #
+
 def y_df_RMSE_r2(y_train, y_validate):
     """ Calculare RMSE and r^2 score using a dataframe containing 
         predictions of multiple models """
@@ -24,10 +26,12 @@ def y_df_RMSE_r2(y_train, y_validate):
                                         ignore_index=True)
     return running_df
 
+# --------------------- Regression Shotgun --------------------- #
+
 def regression_shotgun(X_train, y_train, X_validate, y_validate):
     """ Create several OLS, LASSO+LARS, GLM, and Polynomial regression models,
         Push model predictions to originating dataframe, return dataframe """
-    # Baseline
+    # # Baseline
     y_train, y_validate = regression_bl(y_train, y_validate)
     # OLS models
     y_train, y_validate = ols_predictor(X_train, y_train, X_validate, y_validate)
@@ -39,6 +43,8 @@ def regression_shotgun(X_train, y_train, X_validate, y_validate):
     y_train, y_validate = pf_lm_predictor(X_train, y_train, X_validate, y_validate)
     
     return y_train, y_validate
+
+# --------------------- Model Creation Functions --------------------- #
 
 def regression_bl(y_train, y_validate):
     """ Create mean and median baseline models, add predictions to y dataframes """
@@ -104,6 +110,8 @@ def pf_lm_predictor(X_train, y_train, X_validate, y_validate):
         y_validate[name + '_preds'] = lm.fit(X_train_pf, y_train.actuals).predict(X_validate_pf)
         
     return y_train, y_validate
+
+# --------------------- Additional Evaluation Functions --------------------- #
 
 def plot_residuals(x, y_train):
     """ Creates a residual plot from one variable """
