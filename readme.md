@@ -26,6 +26,9 @@ From a practical perspective, this project should do two things:
 The dataset includes various cars with different stock horsepower. Cars have varying performance at stock and that needs to be controlled-for in our model.
 ## 4. For unknown reasons, cars with engine computer tuning do not have higher horsepower than cars without it.
 
+# Future Work
+1. Use algorithmic clustering techniques to group keywords against changes in horsepower
+
 # Recreate My Work
 1. Read this README
 2. Download wrangle.py, model.py, and final_notebook.ipynb
