@@ -19,6 +19,10 @@ From a practical perspective, this project should do two things:
 1. Determine which factors increase max horsepower for any given car
 2. Predict expected horsepower accurately given some information about the car
 
+# Tableau Visualizations
+- Boost PSI and horsepower correlate: https://public.tableau.com/app/profile/jacob.paxton/viz/CarsBoostPSICorrelateswithHorsepower/PSIandHP
+- Fuel octane and horsepower correlate: https://public.tableau.com/app/profile/jacob.paxton/viz/CarsFuelOctaneCorrelateswithHorsepower/OctaneandHP
+
 # Findings
 ## 1. As boost PSI is increased, max horsepower increases.
 ## 2. As fuel octane is increased, max horsepower increases.
